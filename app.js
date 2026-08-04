@@ -106,10 +106,11 @@
     }).catch(function () {});
   }
 
-  /* ---- CTA buttons: scroll to form + InitiateCheckout ---- */
+  /* ---- CTA buttons: scroll to form + CTAClick (custom) ----
+     InitiateCheckout עבר לשליחת הטופס — גלילה לטופס אינה התחלת תשלום */
   function ctaClick() {
     trackEvent('cta_click_500kdiy', { button: 'scroll_to_checkout', page: '/500kdiy' });
-    if (window.fbq) fbq('track', 'InitiateCheckout', { content_name: '500k_diy_course', value: 197, currency: 'ILS' });
+    if (window.fbq) fbq('trackCustom', 'CTAClick', { content_name: '500k_diy_course', value: 197, currency: 'ILS' });
     var el = document.getElementById('signup');
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -219,7 +220,10 @@
 
       Promise.allSettled([dbInsert, smoove]).then(function () {
         trackEvent('form_submit_500kdiy', { email: mail, page: '/500kdiy' });
-        if (window.fbq) fbq('track', 'Lead', { content_name: '500k_diy_course', value: 197, currency: 'ILS' });
+        if (window.fbq) {
+          fbq('track', 'InitiateCheckout', { content_name: '500k_diy_course', value: 197, currency: 'ILS' });
+          fbq('track', 'Lead', { content_name: '500k_diy_course', value: 197, currency: 'ILS' });
+        }
         if (window.gtag) gtag('event', 'begin_checkout', { event_category: 'ecommerce', event_label: '500k_diy_purchase', value: 147 });
         sendTrackLead(mail);
         window.location.href = CARDCOM_URL + encodeURIComponent(mail);
