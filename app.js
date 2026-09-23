@@ -88,6 +88,32 @@
     }, true);
   }
 
+  /* ---- מדידת הפורטל (guide_events) — אותו ביקון של שאר הדפים ----
+     בלי זה הדף הזה לא מופיע ב/links וב/guide-stats, ולא רואים ממנו נזילות. */
+  var MI_TRACK = 'https://academy.mominvest.co.il/guide-hit';
+  function miVid() {
+    try {
+      var v = localStorage.getItem('mi_vid');
+      if (!v) { v = Date.now().toString(36) + Math.random().toString(36).slice(2, 10); localStorage.setItem('mi_vid', v); }
+      return v;
+    } catch (e) { return 'nostore'; }
+  }
+  function miHit(page, kind, email) {
+    var a = getAttribution(), p = new URLSearchParams();
+    p.set('page', page); p.set('vid', miVid());
+    if (kind) p.set('kind', kind);
+    if (email) p.set('email', email);
+    ['ref', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_content'].forEach(function (k) { if (a[k]) p.set(k, a[k]); });
+    if (!a.ref && document.referrer && document.referrer.indexOf(location.host) < 0) p.set('ref', document.referrer.slice(0, 120));
+    var body = p.toString();
+    try {
+      if (!navigator.sendBeacon || !navigator.sendBeacon(MI_TRACK, new Blob([body], { type: 'application/x-www-form-urlencoded' }))) {
+        fetch(MI_TRACK, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body, keepalive: true }).catch(function () {});
+      }
+    } catch (e) {}
+  }
+  miHit('500k');
+
   /* ---- portal ref/utm attribution (track-lead, keepalive) ---- */
   function sendTrackLead(email) {
     var a = getAttribution();
@@ -226,6 +252,7 @@
         }
         if (window.gtag) gtag('event', 'begin_checkout', { event_category: 'ecommerce', event_label: '500k_diy_purchase', value: 147 });
         sendTrackLead(mail);
+        miHit('500k', 'lead', mail);
         window.location.href = CARDCOM_URL + encodeURIComponent(mail);
       });
       // safety net: never leave the button stuck if navigation is blocked
